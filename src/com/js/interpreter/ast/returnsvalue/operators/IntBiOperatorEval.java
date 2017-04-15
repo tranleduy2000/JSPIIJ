@@ -28,7 +28,9 @@ public class IntBiOperatorEval extends BinaryOperatorEvaluation {
 		case LESSEQ:
 		case LESSTHAN:
 		case NOTEQUAL:
-			return new RuntimeType(BasicType.Boolean, false);
+			return new RuntimeType(BasicType.Boolean, false
+		case DIVIDE:
+                	return new RuntimeType(BasicType.Double, false);
 		default:
 			return new RuntimeType(BasicType.Integer, false);
 		}
