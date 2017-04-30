@@ -1,95 +1,106 @@
 package com.js.interpreter.ast.returnsvalue;
 
-import javax.naming.OperationNotSupportedException;
-
 import com.js.interpreter.ast.expressioncontext.CompileTimeContext;
 import com.js.interpreter.ast.expressioncontext.ExpressionContext;
 import com.js.interpreter.ast.instructions.SetValueExecutable;
-import com.js.interpreter.exceptions.ConstantCalculationException;
-import com.js.interpreter.exceptions.ParsingException;
-import com.js.interpreter.exceptions.UnassignableTypeException;
+import com.js.interpreter.ast.returnsvalue.operators.*;
+import com.js.interpreter.exceptions.*;
 import com.js.interpreter.linenumber.LineInfo;
+import com.js.interpreter.pascaltypes.BasicType;
+import com.js.interpreter.pascaltypes.DeclaredType;
+import com.js.interpreter.pascaltypes.PointerType;
 import com.js.interpreter.pascaltypes.RuntimeType;
 import com.js.interpreter.runtime.VariableContext;
 import com.js.interpreter.runtime.codeunit.RuntimeExecutable;
 import com.js.interpreter.runtime.exception.PascalArithmeticException;
 import com.js.interpreter.runtime.exception.RuntimePascalException;
+import com.js.interpreter.runtime.exception.internal.InternalInterpreterException;
 import com.js.interpreter.tokens.OperatorTypes;
 
-public class UnaryOperatorEvaluation extends DebuggableReturnsValue {
-	public OperatorTypes type;
+public abstract class UnaryOperatorEvaluation extends DebuggableRValue {
+    public OperatorTypes operator;
+    public RuntimeType type;
+    public RValue operon;
+    public LineInfo line;
 
-	public ReturnsValue operon;
-	LineInfo line;
+    protected UnaryOperatorEvaluation(RValue operon, OperatorTypes operator,
+                                      LineInfo line) {
 
-	public UnaryOperatorEvaluation(ReturnsValue operon, OperatorTypes operator,
-			LineInfo line) {
-		this.type = operator;
-		this.line = line;
-		this.operon = operon;
-	}
+        this.operator = operator;
+        this.line = line;
+        this.operon = operon;
+    }
 
-	@Override
-	public LineInfo getLineNumber() {
-		return line;
-	}
+    @Override
+    public LineInfo getLineNumber() {
+        return line;
+    }
 
-	@Override
-	public Object getValueImpl(VariableContext f, RuntimeExecutable<?> main)
-			throws RuntimePascalException {
-		Object value = operon.getValue(f, main);
-		return operate(value);
-	}
+    @Override
+    public Object getValueImpl(VariableContext f, RuntimeExecutable<?> main)
+            throws RuntimePascalException {
+        Object value = operon.getValue(f, main);
+        return operate(value);
+    }
 
-	public Object operate(Object value) throws PascalArithmeticException {
-		try {
-			return type.operate(value);
-		} catch (OperationNotSupportedException e) {
-			throw new RuntimeException(e);
-		} catch (ArithmeticException e) {
-			throw new PascalArithmeticException(line, e);
-		}
-	}
+    public abstract Object operate(Object value) throws PascalArithmeticException, InternalInterpreterException;
 
-	@Override
-	public String toString() {
-		return "operator [" + type + "] on [" + operon + ']';
-	}
+    @Override
+    public String toString() {
+        return "operator [" + operator + "] on [" + operon + ']';
+    }
 
-	@Override
-	public RuntimeType get_type(ExpressionContext f) throws ParsingException {
-		return operon.get_type(f);
-	}
+    @Override
+    public RuntimeType get_type(ExpressionContext f) throws ParsingException {
+        return operon.get_type(f);
+    }
 
-	@Override
-	public Object compileTimeValue(CompileTimeContext context)
-			throws ParsingException {
-		Object value = operon.compileTimeValue(context);
-		if (value == null) {
-			return null;
-		}
-		try {
-			return operate(value);
-		} catch (PascalArithmeticException e) {
-			throw new ConstantCalculationException(e);
-		}
-	}
+    @Override
+    public Object compileTimeValue(CompileTimeContext context)
+            throws ParsingException {
+        Object value = operon.compileTimeValue(context);
+        if (value == null) {
+            return null;
+        }
+        try {
+            return operate(value);
+        } catch (PascalArithmeticException | InternalInterpreterException e) {
+            throw new ConstantCalculationException(e);
+        }
+    }
 
-	@Override
-	public SetValueExecutable createSetValueInstruction(ReturnsValue r)
-			throws UnassignableTypeException {
-		throw new UnassignableTypeException(this);
-	}
+    public static RValue generateOp(ExpressionContext f,
+                                                     RValue v1, OperatorTypes op_type,
+                                                     LineInfo line) throws ParsingException {
+        DeclaredType t1 = v1.get_type(f).declType;
 
-	@Override
-	public ReturnsValue compileTimeExpressionFold(CompileTimeContext context)
-			throws ParsingException {
-		Object val = this.compileTimeValue(context);
-		if (val != null) {
-			return new ConstantAccess(val, line);
-		} else {
-			return new UnaryOperatorEvaluation(
-					operon.compileTimeExpressionFold(context), type, line);
-		}
-	}
+        if(!op_type.can_be_unary) {
+            throw new BadOperationTypeException(line, t1,  v1, op_type);
+        }
+        if(op_type == OperatorTypes.ADDRESS) {
+            LValue target = v1.asLValue(f);
+            if(target!=null) {
+                return new AddressEval(target,line);
+            }
+        }
+        if(op_type == OperatorTypes.DEREF) {
+            if(t1 instanceof  PointerType) {
+                return new DerefEval(v1, line);
+            }
+        }
+        if(op_type == OperatorTypes.NOT && t1 == BasicType.Boolean) {
+            return new BoolUniOperatorEval(v1,op_type,line);
+        }
+        if(t1 == BasicType.Integer) {
+            return new IntUniOperatorEval(v1, op_type, line);
+        }
+        if(t1 == BasicType.Long) {
+            return new LongUniOperatorEval(v1, op_type, line);
+        }
+        if(t1 == BasicType.Double) {
+            return new DoubleUniOperatorEval(v1, op_type, line);
+        }
+
+        throw new BadOperationTypeException(line, t1,  v1, op_type);
+    }
 }

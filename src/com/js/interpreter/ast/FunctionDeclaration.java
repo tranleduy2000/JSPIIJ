@@ -1,10 +1,5 @@
 package com.js.interpreter.ast;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import com.js.interpreter.ast.codeunit.CodeUnit;
 import com.js.interpreter.ast.codeunit.Library;
 import com.js.interpreter.ast.expressioncontext.ExpressionContext;
 import com.js.interpreter.ast.expressioncontext.ExpressionContextMixin;
@@ -23,13 +18,13 @@ import com.js.interpreter.runtime.codeunit.RuntimeExecutable;
 import com.js.interpreter.runtime.exception.RuntimePascalException;
 import com.js.interpreter.tokens.Token;
 import com.js.interpreter.tokens.WordToken;
-import com.js.interpreter.tokens.basic.ColonToken;
-import com.js.interpreter.tokens.basic.CommaToken;
-import com.js.interpreter.tokens.basic.ForwardToken;
-import com.js.interpreter.tokens.basic.SemicolonToken;
-import com.js.interpreter.tokens.basic.VarToken;
+import com.js.interpreter.tokens.basic.*;
 import com.js.interpreter.tokens.grouping.GrouperToken;
 import com.js.interpreter.tokens.grouping.ParenthesizedToken;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class FunctionDeclaration extends AbstractCallableFunction {
     final public ExpressionContextMixin declarations;
@@ -51,9 +46,11 @@ public class FunctionDeclaration extends AbstractCallableFunction {
     private boolean body_declared;
 
     private class FunctionExpressionContext extends ExpressionContextMixin {
+        FunctionDeclaration function;
 
-        public FunctionExpressionContext(ExpressionContext parent) {
+        public FunctionExpressionContext(FunctionDeclaration function, ExpressionContext parent) {
             super(parent.root(), parent);
+            this.function = function;
         }
 
         @Override
@@ -79,11 +76,25 @@ public class FunctionDeclaration extends AbstractCallableFunction {
             instructions = i.get_next_command(declarations);
             i.assert_next_semicolon();
         }
+
+        @Override
+        public VariableDeclaration getVariableDefinitionLocal(String ident) {
+            VariableDeclaration unit_variable_decl = super.getVariableDefinitionLocal(ident);
+            if (unit_variable_decl != null) {
+                return unit_variable_decl;
+            }
+            for (int i = 0; i < argument_names.length; i++) {
+                if (argument_names[i].equals(ident)) {
+                    return new VariableDeclaration(argument_names[i], argument_types[i].declType, function.line);
+                }
+            }
+            return null;
+        }
     }
 
     public FunctionDeclaration(ExpressionContext parent, GrouperToken i,
                                boolean is_procedure) throws ParsingException {
-        this.declarations = new FunctionExpressionContext(parent);
+        this.declarations = new FunctionExpressionContext(this, parent);
         this.line = i.peek().lineInfo;
         name = i.next_word_value();
 
@@ -91,11 +102,11 @@ public class FunctionDeclaration extends AbstractCallableFunction {
         Token next = i.peek();
         if (!(is_procedure ^ (next instanceof ColonToken))) {
             throw new ParsingException(next.lineInfo,
-                    "Functions must have a return type, and procedures cannot have one");
+                    "Functions must have a return operator, and procedures cannot have one");
         }
         if (!is_procedure && next instanceof ColonToken) {
             i.take();
-            result_definition = new VariableDeclaration(name,
+            result_definition = new VariableDeclaration("result",
                     i.get_next_pascal_type(declarations), line);
             this.declarations.declareVariable(result_definition);
         }
@@ -129,7 +140,7 @@ public class FunctionDeclaration extends AbstractCallableFunction {
     }
 
     public FunctionDeclaration(ExpressionContext p) {
-        this.declarations = new FunctionExpressionContext(p);
+        this.declarations = new FunctionExpressionContext(this, p);
         this.argument_names = new String[0];
         this.argument_types = new RuntimeType[0];
     }
@@ -158,7 +169,7 @@ public class FunctionDeclaration extends AbstractCallableFunction {
         if (next instanceof ParenthesizedToken) {
             ParenthesizedToken arguments_token = (ParenthesizedToken) i.take();
             while (arguments_token.hasNext()) {
-                int j = 0; // counts number added of this type
+                int j = 0; // counts number added of this operator
                 next = arguments_token.take();
                 boolean is_varargs = false;
                 if (next instanceof VarToken) {
@@ -199,10 +210,7 @@ public class FunctionDeclaration extends AbstractCallableFunction {
         for (int j = 0; j < argument_names.length; j++) {
             WordToken n = names_list.get(j);
             argument_names[j] = n.name;
-            declarations.declareVariable(new VariableDeclaration(n.name,
-                    argument_types[j].declType, n.lineInfo));
         }
-
     }
 
     @Override
@@ -225,7 +233,7 @@ public class FunctionDeclaration extends AbstractCallableFunction {
             if (result_definition == null || other.return_type() == null
                     || !result_definition.equals(other.return_type())) {
                 System.err
-                        .println("Warning: Overriding previously declared return type for function "
+                        .println("Warning: Overriding previously declared return operator for function "
                                 + name);
             }
             return true;

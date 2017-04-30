@@ -1,17 +1,17 @@
 package com.js.interpreter.exceptions;
 
-import com.js.interpreter.ast.returnsvalue.ReturnsValue;
+import com.js.interpreter.ast.returnsvalue.RValue;
 
 public class NonIntegerIndexException extends ParsingException {
-	ReturnsValue value;
+    RValue value;
 
-	public NonIntegerIndexException(ReturnsValue value) {
-		super(value.getLineNumber());
-		this.value = value;
-	}
+    public NonIntegerIndexException(RValue value) {
+        super(value.getLineNumber());
+        this.value = value;
+    }
 
-	@Override
-	public String getMessage() {
-		return "Array indexes must be integers: " + value;
-	}
+    @Override
+    public String getMessage() {
+        return "Array indexes must be integers: " + value;
+    }
 }

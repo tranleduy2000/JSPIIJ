@@ -1,7 +1,7 @@
 package com.js.interpreter.ast.instructions.case_statement;
 
 import com.js.interpreter.ast.returnsvalue.ConstantAccess;
-import com.js.interpreter.ast.returnsvalue.ReturnsValue;
+import com.js.interpreter.ast.returnsvalue.RValue;
 import com.js.interpreter.ast.returnsvalue.operators.BinaryOperatorEvaluation;
 import com.js.interpreter.exceptions.ParsingException;
 import com.js.interpreter.linenumber.LineInfo;
@@ -10,31 +10,31 @@ import com.js.interpreter.tokens.OperatorTypes;
 
 public class RangeOfValues implements CaseCondition {
 
-	LineInfo line;
+    LineInfo line;
 
-	BinaryOperatorEvaluation greater_than_lower;
-	BinaryOperatorEvaluation less_than_higher;
+    BinaryOperatorEvaluation greater_than_lower;
+    BinaryOperatorEvaluation less_than_higher;
 
-	public RangeOfValues(ReturnsValue value, Object lower, Object higher,
-			LineInfo line) throws ParsingException {
-		ConstantAccess low = new ConstantAccess(lower, line);
-		ConstantAccess hi = new ConstantAccess(higher, line);
-		BinaryOperatorEvaluation greater_than_lower = BinaryOperatorEvaluation
-				.generateOp(null, value, low, OperatorTypes.GREATEREQ, line);
-		BinaryOperatorEvaluation less_than_higher = BinaryOperatorEvaluation
-				.generateOp(null, value, hi, OperatorTypes.LESSEQ, line);
-		this.line = line;
-	}
+    public RangeOfValues(RValue value, Object lower, Object higher,
+                         LineInfo line) throws ParsingException {
+        ConstantAccess low = new ConstantAccess(lower, line);
+        ConstantAccess hi = new ConstantAccess(higher, line);
+        greater_than_lower = BinaryOperatorEvaluation
+                .generateOp(null, value, low, OperatorTypes.GREATEREQ, line);
+        less_than_higher = BinaryOperatorEvaluation
+                .generateOp(null, value, hi, OperatorTypes.LESSEQ, line);
+        this.line = line;
+    }
 
-	@Override
-	public boolean fits(Object value) throws RuntimePascalException {
+    @Override
+    public boolean fits(Object value) throws RuntimePascalException {
 
-		return (Boolean) greater_than_lower.getValue(null, null)
-				&& (Boolean) less_than_higher.getValue(null, null);
-	}
+        return (Boolean) greater_than_lower.getValue(null, null)
+                && (Boolean) less_than_higher.getValue(null, null);
+    }
 
-	@Override
-	public LineInfo getLineNumber() {
-		return line;
-	}
+    @Override
+    public LineInfo getLineNumber() {
+        return line;
+    }
 }

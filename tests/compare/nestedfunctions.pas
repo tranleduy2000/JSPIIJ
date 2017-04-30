@@ -8,16 +8,16 @@ var
     tmp: integer;
 begin
     if numleft = 0 then
-        realfib := n2
+        result := n2
     else begin
         tmp := n2;
         n2 := n1 + n2;
         n1 := n2;
-        realfib := realfib(n1,n2,numleft - 1);
+        result := realfib(n1,n2,numleft - 1);
     end
 end;
 begin
-    fibonacci := realfib(0,1,n);
+    result := realfib(0,1,n);
 end;
 
 begin

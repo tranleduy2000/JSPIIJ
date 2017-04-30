@@ -1,19 +1,14 @@
 package com.js.interpreter.test;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FilenameFilter;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Scanner;
-
 import com.js.interpreter.exceptions.ParsingException;
 import com.js.interpreter.runtime.exception.RuntimePascalException;
 import com.js.interpreter.startup.Interface;
 import com.js.interpreter.startup.ScriptSource;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Scanner;
 
 public class RegressionTests {
 
