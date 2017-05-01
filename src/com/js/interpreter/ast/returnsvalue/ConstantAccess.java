@@ -2,9 +2,7 @@ package com.js.interpreter.ast.returnsvalue;
 
 import com.js.interpreter.ast.expressioncontext.CompileTimeContext;
 import com.js.interpreter.ast.expressioncontext.ExpressionContext;
-import com.js.interpreter.ast.instructions.SetValueExecutable;
 import com.js.interpreter.exceptions.ParsingException;
-import com.js.interpreter.exceptions.UnassignableTypeException;
 import com.js.interpreter.linenumber.LineInfo;
 import com.js.interpreter.pascaltypes.BasicType;
 import com.js.interpreter.pascaltypes.RuntimeType;

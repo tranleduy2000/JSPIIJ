@@ -25,7 +25,7 @@ public class ForStatement extends DebuggableExecutable {
                         RValue first, RValue last, Executable command,
                         LineInfo line) throws ParsingException {
         this.line = line;
-        setfirst = new Assignment(temp_var,first,line);
+        setfirst = new Assignment(temp_var, first, line);
         lessthanlast = BinaryOperatorEvaluation.generateOp(f, temp_var, last,
                 OperatorTypes.LESSEQ, this.line);
         increment_temp = new Assignment(temp_var, BinaryOperatorEvaluation.generateOp(

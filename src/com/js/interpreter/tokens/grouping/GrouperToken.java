@@ -23,9 +23,17 @@ import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public abstract class GrouperToken extends Token {
+    /**
+     *
+     */
+    private static final long serialVersionUID = -5736870403548847904L;
     LinkedBlockingQueue<Token> queue;
-
     Token next = null;
+
+    public GrouperToken(LineInfo line) {
+        super(line);
+        queue = new LinkedBlockingQueue<Token>();
+    }
 
     private Token get_next() throws GroupingException {
         if (next == null) {
@@ -40,11 +48,6 @@ public abstract class GrouperToken extends Token {
         }
         exceptioncheck(next);
         return next;
-    }
-
-    public GrouperToken(LineInfo line) {
-        super(line);
-        queue = new LinkedBlockingQueue<Token>();
     }
 
     public boolean hasNext() throws GroupingException {
@@ -105,11 +108,6 @@ public abstract class GrouperToken extends Token {
         }
     }
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = -5736870403548847904L;
-
     public String next_word_value() throws ParsingException {
         return take().get_word_value().name;
     }
@@ -133,12 +131,12 @@ public abstract class GrouperToken extends Token {
             result.variable_types = r.get_variable_declarations(context);
             return result;
         }
-        if (n instanceof OperatorToken && ((OperatorToken)n).type == OperatorTypes.DEREF) {
+        if (n instanceof OperatorToken && ((OperatorToken) n).type == OperatorTypes.DEREF) {
             DeclaredType pointed_type = get_next_pascal_type(context);
             return new PointerType(pointed_type);
         }
         /*if (n instanceof ClassToken) {
-			ClassToken o = (ClassToken)n;
+            ClassToken o = (ClassToken)n;
 			ClassType result = new ClassType();
 			throw new ExpectedTokenException("[asdf]", n);
 		}*/
@@ -192,7 +190,7 @@ public abstract class GrouperToken extends Token {
                 throw new BadOperationTypeException(next.lineInfo,
                         nextOperator.type);
             }
-            nextTerm = UnaryOperatorEvaluation.generateOp(context, getNextExpression(context, nextOperator.type.getPrecedence()), nextOperator.type,  nextOperator.lineInfo);
+            nextTerm = UnaryOperatorEvaluation.generateOp(context, getNextExpression(context, nextOperator.type.getPrecedence()), nextOperator.type, nextOperator.lineInfo);
         } else {
             nextTerm = getNextTerm(context, next);
         }
@@ -203,7 +201,7 @@ public abstract class GrouperToken extends Token {
                     break;
                 }
                 take();
-                if(nextOperator.postfix()) {
+                if (nextOperator.postfix()) {
                     return UnaryOperatorEvaluation.generateOp(context, nextTerm, nextOperator.type, nextOperator.lineInfo);
                 }
                 RValue nextvalue = getNextExpression(context,
@@ -292,8 +290,8 @@ public abstract class GrouperToken extends Token {
     public List<VariableDeclaration> get_variable_declarations(
             ExpressionContext context) throws ParsingException {
         List<VariableDeclaration> result = new ArrayList<VariableDeclaration>();
-		/*
-		 * reusing it, so it is further out of scope than necessary
+        /*
+         * reusing it, so it is further out of scope than necessary
 		 */
         List<WordToken> names = new ArrayList<WordToken>();
         Token next;
@@ -396,7 +394,7 @@ public abstract class GrouperToken extends Token {
         } else if (next instanceof ForToken) {
             RValue tmp_val = getNextExpression(context);
             LValue tmp_var = tmp_val.asLValue(context);
-            if(tmp_var == null) {
+            if (tmp_var == null) {
                 throw new UnassignableTypeException(tmp_val);
             }
             next = take();
@@ -450,7 +448,7 @@ public abstract class GrouperToken extends Token {
             if (next instanceof AssignmentToken) {
                 take();
                 LValue left = r.asLValue(context);
-                if(left == null) {
+                if (left == null) {
                     throw new UnassignableTypeException(r);
                 }
                 RValue value_to_assign = getNextExpression(context);

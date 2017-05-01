@@ -67,7 +67,7 @@ public class FieldAccess extends DebuggableLValue {
 
     @Override
     public Reference<?> getReferenceImpl(VariableContext f, RuntimeExecutable<?> main) throws RuntimePascalException {
-        return new FieldReference((ContainsVariables)container.getValue(f,main), name);
+        return new FieldReference((ContainsVariables) container.getValue(f, main), name);
     }
 
     @Override

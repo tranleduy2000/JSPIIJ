@@ -2,11 +2,9 @@ package com.js.interpreter.ast.returnsvalue.cloning;
 
 import com.js.interpreter.ast.expressioncontext.CompileTimeContext;
 import com.js.interpreter.ast.expressioncontext.ExpressionContext;
-import com.js.interpreter.ast.instructions.SetValueExecutable;
 import com.js.interpreter.ast.returnsvalue.LValue;
 import com.js.interpreter.ast.returnsvalue.RValue;
 import com.js.interpreter.exceptions.ParsingException;
-import com.js.interpreter.exceptions.UnassignableTypeException;
 import com.js.interpreter.linenumber.LineInfo;
 import com.js.interpreter.pascaltypes.RuntimeType;
 import com.js.interpreter.runtime.VariableContext;
