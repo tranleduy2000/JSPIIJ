@@ -2,11 +2,13 @@ package com.js.interpreter.ast.returnsvalue.operators;
 
 import com.js.interpreter.ast.expressioncontext.CompileTimeContext;
 import com.js.interpreter.ast.expressioncontext.ExpressionContext;
+import com.js.interpreter.ast.instructions.SetValueExecutable;
 import com.js.interpreter.ast.returnsvalue.DebuggableRValue;
 import com.js.interpreter.ast.returnsvalue.RValue;
 import com.js.interpreter.exceptions.BadOperationTypeException;
 import com.js.interpreter.exceptions.ConstantCalculationException;
 import com.js.interpreter.exceptions.ParsingException;
+import com.js.interpreter.exceptions.UnassignableTypeException;
 import com.js.interpreter.linenumber.LineInfo;
 import com.js.interpreter.pascaltypes.BasicType;
 import com.js.interpreter.pascaltypes.DeclaredType;
@@ -33,6 +35,45 @@ public abstract class BinaryOperatorEvaluation extends DebuggableRValue {
         this.operon1 = operon1;
         this.operon2 = operon2;
         this.line = line;
+    }
+
+    @Override
+    public LineInfo getLineNumber() {
+        return line;
+    }
+
+    @Override
+    public Object getValueImpl(VariableContext f, RuntimeExecutable<?> main)
+            throws RuntimePascalException {
+        Object value1 = operon1.getValue(f, main);
+        Object value2 = operon2.getValue(f, main);
+        return operate(value1, value2);
+    }
+
+    public abstract Object operate(Object value1, Object value2)
+            throws PascalArithmeticException, InternalInterpreterException;
+
+    @Override
+    public String toString() {
+        return "(" + operon1 + ") " + operator_type + " (" + operon2 + ')';
+    }
+
+    @Override
+    public Object compileTimeValue(CompileTimeContext context)
+            throws ParsingException {
+        Object value1 = operon1.compileTimeValue(context);
+        Object value2 = operon2.compileTimeValue(context);
+        if (value1 != null && value2 != null) {
+            try {
+                return operate(value1, value2);
+            } catch (PascalArithmeticException e) {
+                throw new ConstantCalculationException(e);
+            } catch (InternalInterpreterException e) {
+                throw new ConstantCalculationException(e);
+            }
+        } else {
+            return null;
+        }
     }
 
     /* Boy, templates or macros like C++ sure would be useful now... */
@@ -104,44 +145,5 @@ public abstract class BinaryOperatorEvaluation extends DebuggableRValue {
             return new BoolBiOperatorEval(v1, v2, op_type, line);
         }
         throw new BadOperationTypeException(line, t1, t2, v1, v2, op_type);
-    }
-
-    @Override
-    public LineInfo getLineNumber() {
-        return line;
-    }
-
-    @Override
-    public Object getValueImpl(VariableContext f, RuntimeExecutable<?> main)
-            throws RuntimePascalException {
-        Object value1 = operon1.getValue(f, main);
-        Object value2 = operon2.getValue(f, main);
-        return operate(value1, value2);
-    }
-
-    public abstract Object operate(Object value1, Object value2)
-            throws PascalArithmeticException, InternalInterpreterException;
-
-    @Override
-    public String toString() {
-        return "(" + operon1 + ") " + operator_type + " (" + operon2 + ')';
-    }
-
-    @Override
-    public Object compileTimeValue(CompileTimeContext context)
-            throws ParsingException {
-        Object value1 = operon1.compileTimeValue(context);
-        Object value2 = operon2.compileTimeValue(context);
-        if (value1 != null && value2 != null) {
-            try {
-                return operate(value1, value2);
-            } catch (PascalArithmeticException e) {
-                throw new ConstantCalculationException(e);
-            } catch (InternalInterpreterException e) {
-                throw new ConstantCalculationException(e);
-            }
-        } else {
-            return null;
-        }
     }
 }

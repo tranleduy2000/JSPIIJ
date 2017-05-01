@@ -13,6 +13,8 @@ import com.js.interpreter.runtime.VariableContext;
 import com.js.interpreter.runtime.codeunit.RuntimeExecutable;
 import com.js.interpreter.runtime.exception.RuntimePascalException;
 
+import javax.sound.sampled.Line;
+
 public class AddressEval extends DebuggableRValue {
     LValue target;
     LineInfo line;

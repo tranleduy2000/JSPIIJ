@@ -27,7 +27,7 @@ public class Assignment extends DebuggableExecutable implements
     public ExecutionResult executeImpl(VariableContext f,
                                        RuntimeExecutable<?> main) throws RuntimePascalException {
         Reference ref = left.getReference(f, main);
-        ref.set(value.getValue(f, main));
+        ref.set(value.getValue(f,main));
         return ExecutionResult.NONE;
     }
 

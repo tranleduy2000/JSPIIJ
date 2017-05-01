@@ -45,6 +45,53 @@ public class FunctionDeclaration extends AbstractCallableFunction {
 
     private boolean body_declared;
 
+    private class FunctionExpressionContext extends ExpressionContextMixin {
+        FunctionDeclaration function;
+
+        public FunctionExpressionContext(FunctionDeclaration function, ExpressionContext parent) {
+            super(parent.root(), parent);
+            this.function = function;
+        }
+
+        @Override
+        public Executable handleUnrecognizedStatementImpl(Token next,
+                                                          GrouperToken container) throws ParsingException {
+            return null;
+        }
+
+        @Override
+        public boolean handleUnrecognizedDeclarationImpl(Token next,
+                                                         GrouperToken container) throws ParsingException {
+            if (next instanceof ForwardToken) {
+                container.assert_next_semicolon();
+                body_declared = true;
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public void handleBeginEnd(GrouperToken i) throws ParsingException {
+            body_declared = true;
+            instructions = i.get_next_command(declarations);
+            i.assert_next_semicolon();
+        }
+
+        @Override
+        public VariableDeclaration getVariableDefinitionLocal(String ident) {
+            VariableDeclaration unit_variable_decl = super.getVariableDefinitionLocal(ident);
+            if (unit_variable_decl != null) {
+                return unit_variable_decl;
+            }
+            for (int i = 0; i < argument_names.length; i++) {
+                if (argument_names[i].equals(ident)) {
+                    return new VariableDeclaration(argument_names[i], argument_types[i].declType, function.line);
+                }
+            }
+            return null;
+        }
+    }
+
     public FunctionDeclaration(ExpressionContext parent, GrouperToken i,
                                boolean is_procedure) throws ParsingException {
         this.declarations = new FunctionExpressionContext(this, parent);
@@ -76,12 +123,6 @@ public class FunctionDeclaration extends AbstractCallableFunction {
         }
     }
 
-    public FunctionDeclaration(ExpressionContext p) {
-        this.declarations = new FunctionExpressionContext(this, p);
-        this.argument_names = new String[0];
-        this.argument_types = new RuntimeType[0];
-    }
-
     public void parse_function_body(GrouperToken i) throws ParsingException {
 
         Token next = i.peek_no_EOF();
@@ -96,6 +137,12 @@ public class FunctionDeclaration extends AbstractCallableFunction {
                 declarations.add_next_declaration(i);
             }
         }
+    }
+
+    public FunctionDeclaration(ExpressionContext p) {
+        this.declarations = new FunctionExpressionContext(this, p);
+        this.argument_names = new String[0];
+        this.argument_types = new RuntimeType[0];
     }
 
     @Override
@@ -202,53 +249,6 @@ public class FunctionDeclaration extends AbstractCallableFunction {
     @Override
     public LineInfo getLineNumber() {
         return line;
-    }
-
-    private class FunctionExpressionContext extends ExpressionContextMixin {
-        FunctionDeclaration function;
-
-        public FunctionExpressionContext(FunctionDeclaration function, ExpressionContext parent) {
-            super(parent.root(), parent);
-            this.function = function;
-        }
-
-        @Override
-        public Executable handleUnrecognizedStatementImpl(Token next,
-                                                          GrouperToken container) throws ParsingException {
-            return null;
-        }
-
-        @Override
-        public boolean handleUnrecognizedDeclarationImpl(Token next,
-                                                         GrouperToken container) throws ParsingException {
-            if (next instanceof ForwardToken) {
-                container.assert_next_semicolon();
-                body_declared = true;
-                return true;
-            }
-            return false;
-        }
-
-        @Override
-        public void handleBeginEnd(GrouperToken i) throws ParsingException {
-            body_declared = true;
-            instructions = i.get_next_command(declarations);
-            i.assert_next_semicolon();
-        }
-
-        @Override
-        public VariableDeclaration getVariableDefinitionLocal(String ident) {
-            VariableDeclaration unit_variable_decl = super.getVariableDefinitionLocal(ident);
-            if (unit_variable_decl != null) {
-                return unit_variable_decl;
-            }
-            for (int i = 0; i < argument_names.length; i++) {
-                if (argument_names[i].equals(ident)) {
-                    return new VariableDeclaration(argument_names[i], argument_types[i].declType, function.line);
-                }
-            }
-            return null;
-        }
     }
 
 }

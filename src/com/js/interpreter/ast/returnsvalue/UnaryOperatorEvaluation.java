@@ -2,10 +2,9 @@ package com.js.interpreter.ast.returnsvalue;
 
 import com.js.interpreter.ast.expressioncontext.CompileTimeContext;
 import com.js.interpreter.ast.expressioncontext.ExpressionContext;
+import com.js.interpreter.ast.instructions.SetValueExecutable;
 import com.js.interpreter.ast.returnsvalue.operators.*;
-import com.js.interpreter.exceptions.BadOperationTypeException;
-import com.js.interpreter.exceptions.ConstantCalculationException;
-import com.js.interpreter.exceptions.ParsingException;
+import com.js.interpreter.exceptions.*;
 import com.js.interpreter.linenumber.LineInfo;
 import com.js.interpreter.pascaltypes.BasicType;
 import com.js.interpreter.pascaltypes.DeclaredType;
@@ -71,37 +70,37 @@ public abstract class UnaryOperatorEvaluation extends DebuggableRValue {
     }
 
     public static RValue generateOp(ExpressionContext f,
-                                    RValue v1, OperatorTypes op_type,
-                                    LineInfo line) throws ParsingException {
+                                                     RValue v1, OperatorTypes op_type,
+                                                     LineInfo line) throws ParsingException {
         DeclaredType t1 = v1.get_type(f).declType;
 
-        if (!op_type.can_be_unary) {
-            throw new BadOperationTypeException(line, t1, v1, op_type);
+        if(!op_type.can_be_unary) {
+            throw new BadOperationTypeException(line, t1,  v1, op_type);
         }
-        if (op_type == OperatorTypes.ADDRESS) {
+        if(op_type == OperatorTypes.ADDRESS) {
             LValue target = v1.asLValue(f);
-            if (target != null) {
-                return new AddressEval(target, line);
+            if(target!=null) {
+                return new AddressEval(target,line);
             }
         }
-        if (op_type == OperatorTypes.DEREF) {
-            if (t1 instanceof PointerType) {
+        if(op_type == OperatorTypes.DEREF) {
+            if(t1 instanceof  PointerType) {
                 return new DerefEval(v1, line);
             }
         }
-        if (op_type == OperatorTypes.NOT && t1 == BasicType.Boolean) {
-            return new BoolUniOperatorEval(v1, op_type, line);
+        if(op_type == OperatorTypes.NOT && t1 == BasicType.Boolean) {
+            return new BoolUniOperatorEval(v1,op_type,line);
         }
-        if (t1 == BasicType.Integer) {
+        if(t1 == BasicType.Integer) {
             return new IntUniOperatorEval(v1, op_type, line);
         }
-        if (t1 == BasicType.Long) {
+        if(t1 == BasicType.Long) {
             return new LongUniOperatorEval(v1, op_type, line);
         }
-        if (t1 == BasicType.Double) {
+        if(t1 == BasicType.Double) {
             return new DoubleUniOperatorEval(v1, op_type, line);
         }
 
-        throw new BadOperationTypeException(line, t1, v1, op_type);
+        throw new BadOperationTypeException(line, t1,  v1, op_type);
     }
 }

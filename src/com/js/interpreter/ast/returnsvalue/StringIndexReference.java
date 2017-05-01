@@ -1,6 +1,17 @@
 package com.js.interpreter.ast.returnsvalue;
 
+import com.js.interpreter.ast.expressioncontext.CompileTimeContext;
+import com.js.interpreter.ast.expressioncontext.ExpressionContext;
+import com.js.interpreter.ast.instructions.SetCharAt;
+import com.js.interpreter.ast.instructions.SetValueExecutable;
+import com.js.interpreter.exceptions.ParsingException;
+import com.js.interpreter.exceptions.UnassignableTypeException;
+import com.js.interpreter.linenumber.LineInfo;
+import com.js.interpreter.pascaltypes.BasicType;
+import com.js.interpreter.pascaltypes.RuntimeType;
 import com.js.interpreter.runtime.Reference;
+import com.js.interpreter.runtime.VariableContext;
+import com.js.interpreter.runtime.codeunit.RuntimeExecutable;
 import com.js.interpreter.runtime.exception.RuntimePascalException;
 
 public class StringIndexReference implements Reference {
@@ -14,12 +25,12 @@ public class StringIndexReference implements Reference {
 
     @Override
     public void set(Object value) {
-        container.setCharAt(index - 1, (char) value);
+        container.setCharAt(index-1,(char)value);
     }
 
     @Override
     public Object get() throws RuntimePascalException {
-        return container.charAt(index - 1);
+        return container.charAt(index-1);
     }
 
     @Override

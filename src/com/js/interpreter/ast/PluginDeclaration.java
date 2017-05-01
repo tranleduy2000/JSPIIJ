@@ -48,7 +48,7 @@ public class PluginDeclaration extends AbstractCallableFunction {
     }
 
     DeclaredType convertBasicType(Type javatype) {
-        if (javatype == PascalPointer.class
+        if(javatype == PascalPointer.class
                 || (javatype instanceof ParameterizedType && ((ParameterizedType) javatype)
                 .getRawType() == PascalPointer.class)) {
             Type subtype = getFirstGenericType(javatype);
